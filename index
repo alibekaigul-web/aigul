@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Зерде — логика, зейін және тыңдау жаттығулары</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F3F6F6;
+    --bg-card:#FFFFFF;
+    --bg-sunk:#E9EEEE;
+    --ink:#20323A;
+    --ink-soft:#5B6E76;
+    --teal:#1F6F78;
+    --teal-dark:#154F56;
+    --teal-tint:#DDEBEC;
+    --amber:#E3A857;
+    --amber-tint:#FBEBD2;
+    --coral:#E2665D;
+    --green:#4C9A6A;
+    --border:#DCE4E5;
+    --radius-lg:22px;
+    --radius-md:14px;
+    --radius-sm:9px;
+    --font-head:'Rubik', 'Inter', sans-serif;
+    --font-body:'Inter', 'Rubik', sans-serif;
+    --shadow: 0 1px 2px rgba(20,40,45,.06), 0 6px 20px rgba(20,40,45,.06);
+    --scale:1;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#131B1D;
+      --bg-card:#1B2528;
+      --bg-sunk:#0F1618;
+      --ink:#EAF1F1;
+      --ink-soft:#9DB0B4;
+      --teal:#4FB3BB;
+      --teal-dark:#79CBD1;
+      --teal-tint:#1E3438;
+      --amber:#F0C285;
+      --amber-tint:#3A2F1E;
+      --coral:#F0938B;
+      --green:#7FC79A;
+      --border:#2B383C;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#131B1D; --bg-card:#1B2528; --bg-sunk:#0F1618; --ink:#EAF1F1; --ink-soft:#9DB0B4;
+    --teal:#4FB3BB; --teal-dark:#79CBD1; --teal-tint:#1E3438; --amber:#F0C285; --amber-tint:#3A2F1E;
+    --coral:#F0938B; --green:#7FC79A; --border:#2B383C;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+    color-scheme: dark;
+  }
+  html[data-contrast="high"]{
+    --bg:#000000; --bg-card:#0A0A0A; --bg-sunk:#050505; --ink:#FFFFFF; --ink-soft:#F2F2F2;
+    --teal:#57D9E6; --teal-dark:#8DEBF3; --teal-tint:#04292D; --amber:#FFD166; --amber-tint:#332708;
+    --coral:#FF8A80; --green:#8BE6A8; --border:#666666;
+    --shadow: none;
+    color-scheme: dark;
+  }
+  *{ box-sizing:border-box; }
+  html{
+    scroll-padding-top: env(safe-area-inset-top,0px);
+    font-size: calc(16px * var(--scale));
+  }
+  body{
+    margin:0;
+    min-height:100%;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--font-body);
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+    -webkit-font-smoothing:antialiased;
+    transition: background .2s ease, color .2s ease;
+  }
+  h1,h2,h3,.brand,.tab,.grade-btn{ font-family:var(--font-head); }
+  a{ color:var(--teal-dark); }
+  button{ font-family:inherit; }
+  :focus-visible{ outline:3px solid var(--amber); outline-offset:2px; border-radius:6px; }
+
+  .wrap{ max-width:920px; margin:0 auto; padding:18px 18px 64px; }
+
+  /* ---------- Header ---------- */
+  header.top{
+    position:sticky; top:env(safe-area-inset-top,0px); z-index:20;
+    background:var(--bg);
+    padding:14px 0 10px;
+    border-bottom:1px solid var(--border);
+  }
+  .top-row{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  .brand{ display:flex; align-items:center; gap:10px; }
+  .brand .mark{
+    width:40px; height:40px; border-radius:12px;
+    background:linear-gradient(155deg, var(--teal) 0%, var(--teal-dark) 100%);
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-weight:700; font-size:1.1rem; flex-shrink:0;
+  }
+  .brand h1{ margin:0; font-size:1.35rem; font-weight:700; letter-spacing:-.01em; }
+  .brand p{ margin:0; font-size:.8rem; color:var(--ink-soft); }
+
+  .a11y-bar{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+  .a11y-btn{
+    display:flex; align-items:center; gap:6px;
+    background:var(--bg-card); border:1px solid var(--border); color:var(--ink);
+    border-radius:999px; padding:7px 12px; font-size:.82rem; cursor:pointer;
+    box-shadow:var(--shadow);
+  }
+  .a11y-btn[aria-pressed="true"]{ background:var(--teal); color:#fff; border-color:var(--teal); }
+  .a11y-group{ display:flex; border:1px solid var(--border); border-radius:999px; overflow:hidden; background:var(--bg-card); box-shadow:var(--shadow); }
+  .a11y-group button{ border:none; background:transparent; color:var(--ink); padding:7px 11px; cursor:pointer; font-size:.9rem; }
+  .a11y-group button:hover{ background:var(--bg-sunk); }
+  select.a11y-btn{ cursor:pointer; appearance:auto; }
+
+  .ornament{
+    height:8px; margin-top:12px;
+    background-image: repeating-linear-gradient(135deg, var(--amber) 0 3px, transparent 3px 16px),
+                       repeating-linear-gradient(45deg, var(--teal) 0 3px, transparent 3px 16px);
+    background-position: 0 0, 8px 0;
+    opacity:.55; border-radius:6px;
+  }
+
+  /* ---------- Category tabs ---------- */
+  nav.tabs{ display:flex; gap:8px; margin:18px 0 14px; flex-wrap:wrap; }
+  .tab{
+    flex:1 1 160px; text-align:left; cursor:pointer; border:1px solid var(--border);
+    background:var(--bg-card); border-radius:var(--radius-md); padding:12px 14px;
+    display:flex; flex-direction:column; gap:2px; color:var(--ink);
+    box-shadow:var(--shadow);
+  }
+  .tab strong{ font-size:1rem; }
+  .tab span{ font-size:.78rem; color:var(--ink-soft); font-family:var(--font-body); }
+  .tab[aria-selected="true"]{ border-color:var(--teal); background:var(--teal-tint); }
+  .tab .count{ margin-top:6px; font-size:.75rem; color:var(--teal-dark); font-weight:600; }
+
+  /* ---------- Grade stepper ---------- */
+  .grade-panel{
+    background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg);
+    padding:14px 16px 16px; box-shadow:var(--shadow); margin-bottom:16px;
+  }
+  .grade-panel h2{ font-size:.85rem; margin:0 0 10px; color:var(--ink-soft); font-weight:600; text-transform:none; }
+  .grade-row{ display:flex; align-items:center; gap:0; overflow-x:auto; padding-bottom:2px; }
+  .grade-btn{
+    flex:0 0 auto; width:38px; height:38px; border-radius:50%; border:2px solid var(--border);
+    background:var(--bg-card); color:var(--ink); font-weight:600; cursor:pointer; position:relative; z-index:1;
+  }
+  .grade-btn[aria-current="true"]{ background:var(--amber); border-color:var(--amber); color:#3A2A0A; }
+  .grade-line{ flex:1 1 auto; height:2px; background:var(--border); min-width:10px; }
+  .grade-line.done{ background:var(--amber); }
+  .tier-label{ margin-top:10px; font-size:.8rem; color:var(--ink-soft); }
+
+  /* ---------- Task card ---------- */
+  .task-card{
+    background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg);
+    padding:20px; box-shadow:var(--shadow); position:relative;
+  }
+  .task-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:6px;}
+  .task-kind{ font-size:.72rem; letter-spacing:.02em; color:var(--teal-dark); font-weight:600; }
+  .listen-btn{
+    border:1px solid var(--border); background:var(--bg-sunk); color:var(--ink); border-radius:999px;
+    padding:6px 12px; font-size:.8rem; cursor:pointer; display:flex; align-items:center; gap:6px; flex-shrink:0;
+  }
+  .listen-btn:hover{ background:var(--teal-tint); }
+  .prompt{ font-size:1.08rem; line-height:1.5; margin:6px 0 16px; font-weight:500; }
+  .task-body{ margin-bottom:14px; }
+  .options{ display:flex; flex-wrap:wrap; gap:10px; }
+  .opt-btn{
+    border:2px solid var(--border); background:var(--bg-card); color:var(--ink);
+    border-radius:var(--radius-md); padding:10px 16px; font-size:.95rem; cursor:pointer; min-width:64px;
+  }
+  .opt-btn:hover{ border-color:var(--teal); }
+  .opt-btn.selected{ border-color:var(--teal); background:var(--teal-tint); }
+  .opt-btn.correct{ border-color:var(--green); background:color-mix(in srgb, var(--green) 18%, var(--bg-card)); }
+  .opt-btn.wrong{ border-color:var(--coral); background:color-mix(in srgb, var(--coral) 16%, var(--bg-card)); }
+  .opt-btn:disabled{ cursor:default; opacity:.75; }
+
+  .grid{ display:grid; gap:6px; margin-bottom:4px; }
+  .cell{
+    aspect-ratio:1; display:flex; align-items:center; justify-content:center; font-size:1.4rem;
+    background:var(--bg-sunk); border-radius:var(--radius-sm); border:2px solid transparent; cursor:default; user-select:none;
+  }
+  .cell.tile{ cursor:pointer; background:var(--bg-card); border:2px solid var(--border); }
+  .cell.tile:hover{ border-color:var(--teal); }
+  .cell.flash{ background:var(--amber); }
+  .cell.pickable{ cursor:pointer; }
+  .cell.pickable:hover{ border-color:var(--teal); }
+  .cell.correct{ border-color:var(--green); }
+  .cell.wrong{ border-color:var(--coral); }
+
+  .word-row{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px; }
+  .transcript{
+    background:var(--bg-sunk); border-radius:var(--radius-md); padding:10px 12px; font-size:.92rem;
+    line-height:1.5; color:var(--ink-soft); margin-bottom:10px;
+  }
+  .toggle-text{ background:none; border:1px dashed var(--border); border-radius:999px; padding:5px 11px; font-size:.78rem; color:var(--ink-soft); cursor:pointer; margin-bottom:10px; }
+
+  .task-actions{ display:flex; align-items:center; gap:10px; margin-top:16px; flex-wrap:wrap; }
+  .btn{
+    border:none; border-radius:999px; padding:11px 20px; font-size:.95rem; font-weight:600; cursor:pointer;
+  }
+  .btn-primary{ background:var(--teal); color:#fff; }
+  .btn-primary:hover{ background:var(--teal-dark); }
+  .btn-ghost{ background:transparent; color:var(--ink-soft); border:1px solid var(--border); }
+  .btn-ghost:hover{ background:var(--bg-sunk); }
+  .btn:disabled{ opacity:.5; cursor:default; }
+
+  .feedback{ margin-top:14px; padding:10px 14px; border-radius:var(--radius-md); font-size:.94rem; display:none; }
+  .feedback.show{ display:block; }
+  .feedback.ok{ background:color-mix(in srgb, var(--green) 16%, var(--bg-card)); color:var(--green); }
+  .feedback.no{ background:color-mix(in srgb, var(--coral) 14%, var(--bg-card)); color:var(--coral); }
+
+  /* ---------- Progress footer ---------- */
+  .progress-bar{
+    display:flex; gap:10px; flex-wrap:wrap; margin-top:18px; align-items:center; justify-content:space-between;
+  }
+  .badges{ display:flex; gap:8px; flex-wrap:wrap; }
+  .badge{
+    background:var(--bg-card); border:1px solid var(--border); border-radius:999px; padding:6px 12px;
+    font-size:.78rem; color:var(--ink-soft); box-shadow:var(--shadow);
+  }
+  .badge b{ color:var(--ink); }
+  .reset-link{ background:none; border:none; color:var(--ink-soft); font-size:.78rem; text-decoration:underline; cursor:pointer; padding:4px; }
+
+  ::-webkit-scrollbar{ height:6px; }
+
+  @media (max-width:520px){
+    .brand h1{ font-size:1.15rem; }
+    .task-card{ padding:16px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="top-row">
+      <div class="brand">
+        <div class="mark">З</div>
+        <div>
+          <h1>Зерде</h1>
+          <p>1–9 сынып оқушыларына арналған логика, зейін және тыңдау жаттығулары</p>
+        </div>
+      </div>
+      <div class="a11y-bar">
+        <div class="a11y-group" role="group" aria-label="Қаріп өлшемі">
+          <button id="fontDown" aria-label="Қаріпті кішірейту">A−</button>
+          <button id="fontUp" aria-label="Қаріпті үлкейту">A+</button>
+        </div>
+        <button id="contrastBtn" class="a11y-btn" aria-pressed="false">◐ Жоғары контраст</button>
+        <button id="soundBtn" class="a11y-btn" aria-pressed="true">🔊 Дыбыс</button>
+        <select id="voiceSelect" class="a11y-btn" aria-label="Оқитын дауысты таңдау" style="max-width:180px;"></select>
+      </div>
+    </div>
+    <div class="ornament" aria-hidden="true"></div>
+  </header>
+
+  <nav class="tabs" id="tabs" role="tablist" aria-label="Санат">
+    <button class="tab" data-cat="logic" role="tab" aria-selected="false">
+      <strong>🧩 Логика</strong>
+      <span>Тізбек, ұқсастық, реттеу</span>
+      <span class="count" id="count-logic"></span>
+    </button>
+    <button class="tab" data-cat="attention" role="tab" aria-selected="false">
+      <strong>👁 Зейін</strong>
+      <span>Байқампаздық, есте сақтау</span>
+      <span class="count" id="count-attention"></span>
+    </button>
+    <button class="tab" data-cat="listening" role="tab" aria-selected="false">
+      <strong>👂 Тыңдау</strong>
+      <span>Дыбыс есту, тыңдап-түсіну</span>
+      <span class="count" id="count-listening"></span>
+    </button>
+  </nav>
+
+  <div class="grade-panel">
+    <h2>Сынып</h2>
+    <div class="grade-row" id="gradeRow"></div>
+    <div class="tier-label" id="tierLabel"></div>
+  </div>
+
+  <main class="task-card" id="taskCard">
+    <div class="task-top">
+      <span class="task-kind" id="taskKind">—</span>
+      <button class="listen-btn" id="listenBtn">🔊 Тыңда</button>
+    </div>
+    <p class="prompt" id="prompt">Санатты және сыныбыңды таңдап, бастаңыз.</p>
+    <div class="task-body" id="taskBody"></div>
+    <div class="task-actions">
+      <button class="btn btn-primary" id="checkBtn">Тексеру</button>
+      <button class="btn btn-ghost" id="nextBtn">Келесі тапсырма →</button>
+    </div>
+    <div class="feedback" id="feedback"></div>
+  </main>
+
+  <div class="progress-bar">
+    <div class="badges" id="badges"></div>
+    <button class="reset-link" id="resetBtn">Жетістікті тазарту</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ================= Utilities ================= */
+  function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+  function pick(arr){ return arr[randInt(0,arr.length-1)]; }
+  function shuffle(arr){ const a=arr.slice(); for(let i=a.length-1;i>0;i--){ const j=randInt(0,i); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+  function el(tag, props, kids){
+    const e = document.createElement(tag);
+    if(props) for(const k in props){
+      if(k==="class") e.className=props[k];
+      else if(k==="text") e.textContent=props[k];
+      else if(k.startsWith("on")) e.addEventListener(k.slice(2), props[k]);
+      else e.setAttribute(k, props[k]);
+    }
+    (kids||[]).forEach(k=> e.appendChild(k));
+    return e;
+  }
+  function makeCell(content, cls, onClick){
+    const c = el("div", { class: "cell " + (cls||""), text: content });
+    if(onClick){
+      c.classList.add("pickable");
+      c.setAttribute("role","button");
+      c.setAttribute("tabindex","0");
+      c.addEventListener("click", onClick);
+      c.addEventListener("keydown", function(ev){ if(ev.key==="Enter"||ev.key===" "){ ev.preventDefault(); onClick(); } });
+    }
+    return c;
+  }
+
+  /* ================= State ================= */
+  const state = {
+    category: "logic",
+    grade: 1,
+    task: null,        // current task descriptor from generator
+    checked: false,
+    soundOn: true,
+  };
+
+  const PROGRESS_KEY = "zerde_progress_v1";
+  function loadProgress(){
+    try{
+      const raw = localStorage.getItem(PROGRESS_KEY);
+      if(raw) return JSON.parse(raw);
+    }catch(e){}
+    return { logic:{correct:0,total:0}, attention:{correct:0,total:0}, listening:{correct:0,total:0} };
+  }
+  function saveProgress(p){
+    try{ localStorage.setItem(PROGRESS_KEY, JSON.stringify(p)); }catch(e){}
+  }
+  let progress = loadProgress();
+
+  function tierOf(grade){ return grade<=3 ? 1 : (grade<=6 ? 2 : 3); }
+
+  /* ================= Speech (TTS) ================= */
+  let chosenVoiceName = null;
+  try{ chosenVoiceName = localStorage.getItem("zerde_voice_v1"); }catch(e){}
+
+  function speak(text){
+    if(!state.soundOn) return;
+    try{
+      if(!("speechSynthesis" in window)) return;
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.rate = 0.95;
+      const voices = window.speechSynthesis.getVoices();
+      let v = null;
+      if(chosenVoiceName) v = voices.find(x=>x.name===chosenVoiceName);
+      if(!v) v = voices.find(x=>x.lang && x.lang.toLowerCase().startsWith("kk"));
+      if(!v) v = voices.find(x=>x.lang && x.lang.toLowerCase().startsWith("ru"));
+      if(v){ u.voice = v; u.lang = v.lang; } else { u.lang = "kk-KZ"; }
+      window.speechSynthesis.speak(u);
+    }catch(e){}
+  }
+
+  function populateVoiceSelect(){
+    const sel = document.getElementById("voiceSelect");
+    if(!sel || !("speechSynthesis" in window)) return;
+    const voices = window.speechSynthesis.getVoices();
+    if(!voices.length) return;
+    const prevValue = sel.value;
+    sel.innerHTML = "";
+    sel.appendChild(el("option",{value:"", text:"Автоматты дауыс"}));
+    voices.forEach(v=>{
+      const label = v.name + " (" + v.lang + ")";
+      sel.appendChild(el("option",{value:v.name, text:label}));
+    });
+    if(chosenVoiceName && voices.some(v=>v.name===chosenVoiceName)){
+      sel.value = chosenVoiceName;
+    } else if(prevValue){
+      sel.value = prevValue;
+    }
+  }
+  if("speechSynthesis" in window){
+    window.speechSynthesis.onvoiceschanged = populateVoiceSelect;
+    populateVoiceSelect();
+  }
+
+  /* ================= Beep audio ================= */
+  let actx = null;
+  function beep(freq, dur){
+    return new Promise(function(resolve){
+      if(!state.soundOn){ resolve(); return; }
+      try{
+        if(!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = actx.createOscillator();
+        const gain = actx.createGain();
+        osc.frequency.value = freq;
+        osc.type = "sine";
+        gain.gain.setValueAtTime(0.0001, actx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.25, actx.currentTime+0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime+dur/1000);
+        osc.connect(gain); gain.connect(actx.destination);
+        osc.start();
+        osc.stop(actx.currentTime + dur/1000 + 0.02);
+        setTimeout(resolve, dur);
+      }catch(e){ resolve(); }
+    });
+  }
+  async function playBeepSequence(count, gap){
+    for(let i=0;i<count;i++){
+      await beep(520, 220);
+      await new Promise(r=>setTimeout(r, gap));
+    }
+  }
+
+  /* ================= Content banks ================= */
+  const COLORS = [
+    {word:"Қызыл", hex:"#E2665D"},
+    {word:"Көк",   hex:"#2F6FA6"},
+    {word:"Жасыл", hex:"#4C9A6A"},
+    {word:"Сары",  hex:"#D9A441"},
+  ];
+
+  const ANALOGIES = {
+    1:[
+      {a:"Ит",b:"Үреді",c:"Мысық", options:["Мияулайды","Ұшады","Жүзеді","Секіреді"], correct:"Мияулайды"},
+      {a:"Күн",b:"Ыстық",c:"Мұз", options:["Суық","Жұмсақ","Дөңгелек","Ащы"], correct:"Суық"},
+      {a:"Құс",b:"Ұя",c:"Аю", options:["Үңгір","Аквариум","Клетка","Су"], correct:"Үңгір"},
+    ],
+    2:[
+      {a:"Қол",b:"Саусақ",c:"Аяқ", options:["Башпай","Тізе","Тобық","Өкше"], correct:"Башпай"},
+      {a:"Мектеп",b:"Мұғалім",c:"Ауруxана", options:["Дәрігер","Дастарқан","Жол","Кітап"], correct:"Дәрігер"},
+      {a:"Кітап",b:"Оқу",c:"Ән", options:["Шырқау","Жүгіру","Жазу","Ұйықтау"], correct:"Шырқау"},
+    ],
+    3:[
+      {a:"2",b:"4",c:"3", options:["5","6","9","7"], correct:"6"},
+      {a:"Ыстық",b:"Салқындату",c:"Лас", options:["Тазарту","Бояу","Кесу","Жабу"], correct:"Тазарту"},
+      {a:"Себеп",b:"Салдар: Жаңбыр",c:"Себеп: Жаңбыр", options:["Су тасқыны","Күн","Жел","Қар"], correct:"Су тасқыны"},
+    ],
+  };
+
+  const ODD_ONE_OUT = {
+    1:[
+      {items:["🍎","🍎","🍎","🚗"], oddIndex:3},
+      {items:["🔵","🔵","🔴","🔵"], oddIndex:2},
+      {items:["🐶","🐶","🐱","🐶"], oddIndex:2},
+    ],
+    2:[
+      {items:["Ит","Мысық","Аю","Алма"], oddIndex:3},
+      {items:["Дөңгелек","Шаршы","Үшбұрыш","Қызыл"], oddIndex:3},
+      {items:["2","4","6","7"], oddIndex:3},
+    ],
+    3:[
+      {items:["3","5","9","2"], oddIndex:3},
+      {items:["Текше","Призма","Шар","Шаршы"], oddIndex:3},
+      {items:["Су","Мұз","Бу","Тас"], oddIndex:3},
+    ],
+  };
+
+  const RIDDLES = [
+    {text:"Айгүл Дінарадан үлкен, ал Дінара Салтанаттан үлкен. Ең кіші кім?", options:["Айгүл","Дінара","Салтанат","Барлығы тең"], correct:"Салтанат"},
+    {text:"Егер барлық құстар ұша алса және торғай құс болса, торғай туралы не айта аламыз?", options:["Торғай ұша алады","Торғай ұша алмайды","Белгісіз","Торғай құс емес"], correct:"Торғай ұша алады"},
+    {text:"Мереке Асаннан бұрын келді, Асан Ботадан бұрын келді. Ең соңы кім келгені белгілі ме?", options:["Мереке","Асан","Бота","Иә, Бота"], correct:"Иә, Бота"},
+  ];
+
+  const PASSAGES = {
+    1:[
+      {text:"Далада ақ мысық жүр. Ол сүт ішкісі келеді. Үйге қарай жүгірді.", q:"Мысық не ішкісі келді?", options:["Су","Сүт","Шай","Нан"], correct:"Сүт"},
+      {text:"Айгүл бақшада гүл өсіреді. Гүлдер қызыл және сары түсті.", q:"Гүлдердің түсі қандай?", options:["Көк және жасыл","Қызыл және сары","Ақ және қара","Күлгін"], correct:"Қызыл және сары"},
+      {text:"Балалар саябақта доп ойнады. Күн ашық әрі жылы болды.", q:"Балалар қайда ойнады?", options:["Мектепте","Үйде","Саябақта","Дүкенде"], correct:"Саябақта"},
+    ],
+    2:[
+      {text:"Ертең сыныппен мұражайға барамыз. Онда ежелгі заттар мен суреттер қойылған.", q:"Сынып қайда барады?", options:["Кинотеатрға","Мұражайға","Циркке","Кітапханаға"], correct:"Мұражайға"},
+      {text:"Асан велосипедпен жүруді жақсы көреді. Ол әр демалыс күні паркте бір сағат жүреді.", q:"Асан не істегенді ұнатады?", options:["Жүзу","Велосипедпен жүру","Оқу","Ән салу"], correct:"Велосипедпен жүру"},
+      {text:"Қыс мезгілінде күн ерте батады, ал таңертең кеш атады. Сондықтан балалар жылы киінуі керек.", q:"Мәтін қай мезгіл туралы?", options:["Жаз","Күз","Қыс","Көктем"], correct:"Қыс"},
+    ],
+    3:[
+      {text:"Ғалымдар мұхиттың тереңдігінде жарық аз түсетінін анықтады, сондықтан сол жерде тіршілік ететін балықтардың көзі үлкен болып қалыптасқан.", q:"Терең теңіз балықтарының көзі неге үлкен?", options:["Себебі сол жерде жарық аз түседі","Себебі суда қысым жоқ","Себебі олар түнде ғана жүзеді","Себебі олардың терісі жұқа"], correct:"Себебі сол жерде жарық аз түседі"},
+      {text:"Сұраныс өскен сайын, әдетте баға да көтеріле бастайды, себебі тауар шектеулі болса, оны алғысы келетіндер көбейеді.", q:"Сұраныс өскенде баға неге өседі?", options:["Тауар саны шексіз болғандықтан","Сатушылар пайда таппайды","Алғысы келетіндер көбейіп, тауар шектеулі болғандықтан","Мемлекет бағаны бекітеді"], correct:"Алғысы келетіндер көбейіп, тауар шектеулі болғандықтан"},
+      {text:"Ормандардың кесілуі топырақтың эрозияға ұшырауын жеделдетеді, себебі ағаш тамырлары топырақты бекітіп тұрады.", q:"Ағаш тамырлары не үшін маңызды?", options:["Топырақты бекітіп, эрозиядан сақтайды","Ауаны тазартады","Жануарларға баспана болады","Судың дәмін жақсартады"], correct:"Топырақты бекітіп, эрозиядан сақтайды"},
+    ],
+  };
+
+  const WORD_POOLS = {
+    1:["ит","мысық","алма","кітап","доп","үй","күн","су"],
+    2:["дәптер","қалам","терезе","есік","автобус","теледидар","велосипед","бақша"],
+    3:["кітапхана","температура","дистанция","экология","технология","лаборатория"],
+  };
+
+  const SOUND_SETS = {
+    1:[
+      {target:"мысық", correct:"машина", options:["машина","ит","алма"]},
+      {target:"алма", correct:"ара", options:["ара","үй","мысық"]},
+      {target:"су", correct:"сурет", options:["сурет","ит","доп"]},
+    ],
+    2:[
+      {target:"қалам", correct:"қасық", options:["қасық","дос","терезе"]},
+      {target:"терезе", correct:"теледидар", options:["теледидар","қалам","алма"]},
+      {target:"дос", correct:"дәптер", options:["дәптер","үй","мысық"]},
+    ],
+    3:[
+      {target:"кітап", correct:"кілт", options:["кілт","доп","гүл"]},
+      {target:"үй", correct:"ұя", options:["ұя","алма","ит"]},
+      {target:"технология", correct:"температура", options:["температура","достық","ойын"]},
+    ],
+  };
+
+  const FRUIT_ANIMALS_BY_TIER = {
+    1:{target:"🍎", pool:["🚗","⭐","🎈"]},
+    2:{target:"🐶", pool:["🐱","🐰","🐻"]},
+    3:{target:"🍓", pool:["🍒","🍎","🍇"]},
+  };
+
+  /* ================= Task generators ================= */
+  function genLogicTask(tier){
+    const kinds = tier===1 ? ["seq","odd","analogy","order"] : (tier===2 ? ["seq","odd","analogy","order"] : ["seq","odd","analogy","order","riddle"]);
+    const kind = pick(kinds);
+
+    if(kind==="seq"){
+      let start, step, terms=[];
+      if(tier===1){ start=randInt(1,10); step=randInt(1,3); for(let i=0;i<4;i++) terms.push(start+step*i); }
+      else if(tier===2){ start=randInt(1,20); step= pick([2,3,4,5]) * pick([1,1,2]); for(let i=0;i<4;i++) terms.push(start+step*i); }
+      else{
+        start=randInt(1,10);
+        const s1=randInt(2,5), s2=randInt(6,9);
+        terms=[start, start+s1, start+s1+s2, start+2*s1+s2];
+        step = s1; // for computing 5th term with alternating pattern
+      }
+      let next;
+      if(tier===3){ next = terms[3] + step; } else { next = terms[3] + step; }
+      const distractors = new Set([next]);
+      while(distractors.size<4){ distractors.add(next + pick([-3,-2,-1,1,2,3,4])); }
+      const options = shuffle(Array.from(distractors)).map(String);
+      return {
+        kind:"logic-seq",
+        prompt:"Сандар тізбегін жалғастыр: " + terms.join(", ") + ", ?",
+        speakText:"Сандар тізбегін жалғастыр: " + terms.join(", "),
+        render(body){
+          body.appendChild(el("div",{class:"options"}, options.map(o=> optionButton(o, options))));
+        },
+        correctValue: String(next),
+      };
+    }
+
+    if(kind==="odd"){
+      const bank = ODD_ONE_OUT[tier];
+      const set = pick(bank);
+      return {
+        kind:"logic-odd",
+        prompt:"Басқалардан ерекшеленетінін тап:",
+        speakText:"Басқалардан ерекшеленетін затты тап.",
+        render(body){
+          const wrap = el("div",{class:"options"});
+          set.items.forEach((item,idx)=>{
+            wrap.appendChild(optionButton(item, set.items, idx));
+          });
+          body.appendChild(wrap);
+        },
+        correctValue: set.oddIndex,
+        byIndex:true,
+      };
+    }
+
+    if(kind==="analogy"){
+      const set = pick(ANALOGIES[tier]);
+      return {
+        kind:"logic-analogy",
+        prompt: set.a + " — " + set.b + ". " + set.c + " — ?",
+        speakText: set.a + " " + set.b + ". " + set.c + " не?",
+        render(body){
+          body.appendChild(el("div",{class:"options"}, set.options.map(o=>optionButton(o, set.options))));
+        },
+        correctValue: set.correct,
+      };
+    }
+
+    if(kind==="order"){
+      const count = tier===1?4:(tier===2?5:6);
+      const max = tier===1?20:(tier===2?60:200);
+      let nums = new Set();
+      while(nums.size<count) nums.add(randInt(1,max));
+      const arr = shuffle(Array.from(nums));
+      const sorted = arr.slice().sort((a,b)=>a-b);
+      return {
+        kind:"logic-order",
+        prompt:"Сандарды өсу ретімен (кішіден үлкенге қарай) бір-бірлеп бас:",
+        speakText:"Сандарды кішіден үлкенге қарай ретімен бас.",
+        render(body){
+          const clickOrder = [];
+          const wrap = el("div",{class:"options"});
+          const btns = arr.map(n=>{
+            const b = el("button",{class:"opt-btn", text:String(n)});
+            b.addEventListener("click", function(){
+              if(b.classList.contains("selected")) return;
+              b.classList.add("selected");
+              clickOrder.push(n);
+              b.disabled = true;
+            });
+            wrap.appendChild(b);
+            return b;
+          });
+          body.appendChild(wrap);
+          body._getOrder = ()=> clickOrder;
+        },
+        customCheck(body){
+          const order = body._getOrder ? body._getOrder() : [];
+          return order.length===sorted.length && order.every((v,i)=>v===sorted[i]);
+        },
+      };
+    }
+
+    // riddle
+    const r = pick(RIDDLES);
+    return {
+      kind:"logic-riddle",
+      prompt: r.text,
+      speakText: r.text,
+      render(body){
+        body.appendChild(el("div",{class:"options"}, r.options.map(o=>optionButton(o, r.options))));
+      },
+      correctValue: r.correct,
+    };
+  }
+
+  function optionButton(value, all, indexOverride){
+    const b = el("button",{class:"opt-btn", text: String(value)});
+    b.dataset.value = indexOverride!==undefined ? String(indexOverride) : String(value);
+    b.addEventListener("click", function(){
+      if(state.checked) return;
+      Array.from(b.parentElement.children).forEach(c=>c.classList.remove("selected"));
+      b.classList.add("selected");
+    });
+    return b;
+  }
+
+  function genAttentionTask(tier){
+    const kinds = ["search","stroop","memory","spot"];
+    const kind = pick(kinds);
+
+    if(kind==="search"){
+      const size = tier===1?4:(tier===2?5:6);
+      const total = size*size;
+      const fa = FRUIT_ANIMALS_BY_TIER[tier];
+      const targetCount = randInt(tier===1?3:5, tier===1?6:(tier===2?9:12));
+      let cells = [];
+      for(let i=0;i<targetCount;i++) cells.push(fa.target);
+      while(cells.length<total) cells.push(pick(fa.pool));
+      cells = shuffle(cells);
+      const correct = targetCount;
+      const distractSet = new Set([correct]);
+      while(distractSet.size<4) distractSet.add(Math.max(1, correct + pick([-2,-1,1,2,3])));
+      const options = shuffle(Array.from(distractSet)).map(String);
+      return {
+        kind:"attn-search",
+        prompt:"Суретте нешеу " + fa.target + " бар? Дұрыс санды таңда.",
+        speakText:"Суретте нешеу дана бар? Санын таңда.",
+        render(body){
+          const grid = el("div",{class:"grid"});
+          grid.style.gridTemplateColumns = "repeat(" + size + ", 1fr)";
+          grid.style.maxWidth = (size*46)+"px";
+          cells.forEach(c=> grid.appendChild(makeCell(c)));
+          body.appendChild(grid);
+          body.appendChild(el("div",{class:"options"}, options.map(o=>optionButton(o, options))));
+        },
+        correctValue: String(correct),
+      };
+    }
+
+    if(kind==="stroop"){
+      const n = tier===1?2:(tier===2?3:4);
+      const palette = COLORS.slice(0,n);
+      const wordObj = pick(palette);
+      let colorObj = pick(palette);
+      if(palette.length>1){ while(colorObj.word===wordObj.word) colorObj = pick(palette); }
+      const askColor = tier<3 ? true : pick([true,false]);
+      return {
+        kind:"attn-stroop",
+        prompt: askColor
+          ? "Сөз емес, әрпінің ТҮСІН таңда:"
+          : "Түсіне қарамай, сөздің МАҒЫНАСЫН таңда:",
+        speakText: askColor ? "Сөздің әрпінің түсін таңда." : "Сөздің мағынасын таңда, түсіне қарама.",
+        render(body){
+          const word = el("div",{},[]);
+          word.textContent = wordObj.word;
+          word.style.fontSize = "2rem";
+          word.style.fontWeight = "700";
+          word.style.color = colorObj.hex;
+          word.style.margin = "6px 0 16px";
+          body.appendChild(word);
+          const wrap = el("div",{class:"options"});
+          palette.forEach(p=>{
+            const b = el("button",{class:"opt-btn"});
+            b.textContent = p.word;
+            b.style.borderColor = p.hex;
+            b.dataset.value = p.word;
+            b.addEventListener("click", function(){
+              if(state.checked) return;
+              Array.from(wrap.children).forEach(c=>c.classList.remove("selected"));
+              b.classList.add("selected");
+            });
+            wrap.appendChild(b);
+          });
+          body.appendChild(wrap);
+        },
+        correctValue: askColor ? colorObj.word : wordObj.word,
+      };
+    }
+
+    if(kind==="memory"){
+      const tileCount = 6;
+      const seqLen = tier===1?3:(tier===2?4:5);
+      const sequence = [];
+      for(let i=0;i<seqLen;i++) sequence.push(randInt(0,tileCount-1));
+      return {
+        kind:"attn-memory",
+        prompt:"Жыпылықтаған торкөздердің ретін жатта да, солай қайталап бас.",
+        speakText:"Торкөздердің жыпылықтау ретін жатта.",
+        render(body){
+          const grid = el("div",{class:"grid"});
+          grid.style.gridTemplateColumns = "repeat(3, 1fr)";
+          grid.style.maxWidth = "220px";
+          const tiles = [];
+          for(let i=0;i<tileCount;i++){
+            const t = el("div",{class:"cell tile", text:""});
+            tiles.push(t);
+            grid.appendChild(t);
+          }
+          const status = el("div",{class:"transcript", text:"Байқа... жыпылықтап тұр"});
+          body.appendChild(status);
+          body.appendChild(grid);
+
+          const userSeq = [];
+          let locked = true;
+          tiles.forEach((t,idx)=>{
+            t.addEventListener("click", function(){
+              if(locked) return;
+              userSeq.push(idx);
+              t.classList.add("flash");
+              setTimeout(()=>t.classList.remove("flash"), 200);
+            });
+          });
+
+          async function flashSeq(){
+            locked = true;
+            status.textContent = "Байқа... жыпылықтап тұр";
+            await new Promise(r=>setTimeout(r,500));
+            for(const idx of sequence){
+              tiles[idx].classList.add("flash");
+              await new Promise(r=>setTimeout(r,450));
+              tiles[idx].classList.remove("flash");
+              await new Promise(r=>setTimeout(r,180));
+            }
+            locked = false;
+            status.textContent = "Енді өзің сол ретпен бас";
+          }
+          flashSeq();
+          body._getUserSeq = ()=> userSeq;
+        },
+        customCheck(body){
+          const u = body._getUserSeq ? body._getUserSeq() : [];
+          return u.length===sequence.length && u.every((v,i)=>v===sequence[i]);
+        },
+      };
+    }
+
+    // spot the change
+    const size = tier===1?3:(tier===2?4:5);
+    const total = size*size;
+    const fa = FRUIT_ANIMALS_BY_TIER[tier];
+    let cells = [];
+    for(let i=0;i<total;i++) cells.push(fa.target);
+    const changeIndex = randInt(0,total-1);
+    const changedTo = pick(fa.pool);
+    return {
+      kind:"attn-spot",
+      prompt:"Алдымен суретті есте сақта, содан кейін өзгерген торкөзді тап.",
+      speakText:"Суретті есте сақта, өзгерген жерді тап.",
+      render(body){
+        const status = el("div",{class:"transcript", text:"Есте сақта..."});
+        body.appendChild(status);
+        const grid = el("div",{class:"grid"});
+        grid.style.gridTemplateColumns = "repeat(" + size + ", 1fr)";
+        grid.style.maxWidth = (size*46)+"px";
+        const before = cells.map(c=> makeCell(c));
+        before.forEach(c=>grid.appendChild(c));
+        body.appendChild(grid);
+        let answered = false;
+        setTimeout(function(){
+          status.textContent = "Енді өзгерген торкөзді бас:";
+          grid.innerHTML = "";
+          cells.forEach((c,idx)=>{
+            const shown = idx===changeIndex ? changedTo : c;
+            const cell = makeCell(shown, "", function(){
+              if(answered) return;
+              answered = true;
+              body._picked = idx;
+              cell.classList.add(idx===changeIndex ? "correct" : "wrong");
+              if(idx!==changeIndex) grid.children[changeIndex].classList.add("correct");
+            });
+            grid.appendChild(cell);
+          });
+        }, tier===1?2200:(tier===2?1800:1400));
+      },
+      customCheck(body){ return body._picked === changeIndex; },
+    };
+  }
+
+  function genListeningTask(tier){
+    const kinds = ["passage","beeps","recall","soundmatch"];
+    const kind = pick(kinds);
+
+    if(kind==="passage"){
+      const p = pick(PASSAGES[tier]);
+      return {
+        kind:"listen-passage",
+        prompt: p.q,
+        speakText: p.text,
+        transcript: p.text,
+        render(body){
+          const toggle = el("button",{class:"toggle-text", text:"Мәтінді көрсету"});
+          const box = el("div",{class:"transcript", text:p.text});
+          box.style.display = "none";
+          toggle.addEventListener("click", function(){
+            const on = box.style.display==="none";
+            box.style.display = on?"block":"none";
+            toggle.textContent = on?"Мәтінді жасыру":"Мәтінді көрсету";
+          });
+          body.appendChild(toggle);
+          body.appendChild(box);
+          body.appendChild(el("div",{class:"options"}, p.options.map(o=>optionButton(o,p.options))));
+        },
+        correctValue: p.correct,
+      };
+    }
+
+    if(kind==="beeps"){
+      const count = tier===1? randInt(2,4) : (tier===2? randInt(3,6) : randInt(5,9));
+      const gap = tier===1?450:(tier===2?350:260);
+      const optSet = new Set([count]);
+      while(optSet.size<4) optSet.add(Math.max(1,count+pick([-2,-1,1,2])));
+      const options = shuffle(Array.from(optSet)).map(String);
+      return {
+        kind:"listen-beeps",
+        prompt:"Дыбыстық сигналдарды тыңда: нешеу сигнал естідің?",
+        speakText:"",
+        render(body){
+          const replay = el("button",{class:"listen-btn", text:"🔊 Сигналдарды қайта ойнату"});
+          replay.style.marginBottom = "12px";
+          replay.addEventListener("click", ()=>playBeepSequence(count, gap));
+          body.appendChild(replay);
+          body.appendChild(el("div",{class:"options"}, options.map(o=>optionButton(o, options))));
+          setTimeout(()=>playBeepSequence(count, gap), 350);
+        },
+        correctValue: String(count),
+      };
+    }
+
+    if(kind==="recall"){
+      const len = tier===1?3:(tier===2?4:5);
+      const pool = WORD_POOLS[tier];
+      const chosen = shuffle(pool).slice(0,len);
+      return {
+        kind:"listen-recall",
+        prompt:"Сөздерді тыңда да, естіген ретімен бас.",
+        speakText: chosen.join(", "),
+        render(body){
+          const status = el("div",{class:"transcript", text:"Сөздер оқылды. Енді есте қалған ретімен бас."});
+          body.appendChild(status);
+          const clickOrder = [];
+          const wrap = el("div",{class:"options"});
+          shuffle(chosen).forEach(w=>{
+            const b = el("button",{class:"opt-btn", text:w});
+            b.addEventListener("click", function(){
+              if(b.disabled) return;
+              b.disabled = true;
+              b.classList.add("selected");
+              clickOrder.push(w);
+            });
+            wrap.appendChild(b);
+          });
+          body.appendChild(wrap);
+          body._getOrder = ()=>clickOrder;
+          setTimeout(()=>speak(chosen.join(", ")), 300);
+        },
+        customCheck(body){
+          const order = body._getOrder ? body._getOrder():[];
+          return order.length===chosen.length && order.every((v,i)=>v===chosen[i]);
+        },
+      };
+    }
+
+    // sound match
+    const set = pick(SOUND_SETS[tier]);
+    return {
+      kind:"listen-soundmatch",
+      prompt:"Сөзді тыңда: осы сөзбен бірдей дыбыстан басталатын сөзді тап.",
+      speakText: set.target,
+      render(body){
+        body.appendChild(el("div",{class:"transcript", text:"Сөз: " + set.target}));
+        body.appendChild(el("div",{class:"options"}, shuffle(set.options).map(o=>optionButton(o,set.options))));
+      },
+      correctValue: set.correct,
+    };
+  }
+
+  /* ================= Rendering / flow ================= */
+  const els = {
+    tabs: document.getElementById("tabs"),
+    gradeRow: document.getElementById("gradeRow"),
+    tierLabel: document.getElementById("tierLabel"),
+    taskKind: document.getElementById("taskKind"),
+    prompt: document.getElementById("prompt"),
+    taskBody: document.getElementById("taskBody"),
+    checkBtn: document.getElementById("checkBtn"),
+    nextBtn: document.getElementById("nextBtn"),
+    feedback: document.getElementById("feedback"),
+    listenBtn: document.getElementById("listenBtn"),
+    badges: document.getElementById("badges"),
+  };
+
+  const KIND_LABEL = {
+    logic:"Логика", attention:"Зейін", listening:"Тыңдау"
+  };
+
+  function buildGradeRow(){
+    els.gradeRow.innerHTML = "";
+    for(let g=1; g<=9; g++){
+      const btn = el("button",{class:"grade-btn", text:String(g), "aria-current": String(g===state.grade)});
+      btn.addEventListener("click", function(){ state.grade=g; buildGradeRow(); newTask(); });
+      els.gradeRow.appendChild(btn);
+      if(g<9){
+        const line = el("div",{class:"grade-line" + (g<state.grade?" done":"")});
+        els.gradeRow.appendChild(line);
+      }
+    }
+    const tier = tierOf(state.grade);
+    const label = tier===1? "1–3 сынып деңгейі — негізгі жаттығулар" : (tier===2? "4–6 сынып деңгейі — орта күрделілік" : "7–9 сынып деңгейі — жоғары күрделілік");
+    els.tierLabel.textContent = label;
+  }
+
+  function selectTab(cat){
+    state.category = cat;
+    Array.from(els.tabs.children).forEach(t=>{
+      t.setAttribute("aria-selected", String(t.dataset.cat===cat));
+    });
+    newTask();
+  }
+
+  Array.from(els.tabs.children).forEach(tabEl=>{
+    tabEl.addEventListener("click", ()=>selectTab(tabEl.dataset.cat));
+  });
+
+  function updateBadges(){
+    els.badges.innerHTML = "";
+    ["logic","attention","listening"].forEach(cat=>{
+      const p = progress[cat] || {correct:0,total:0};
+      const b = el("div",{class:"badge"});
+      b.innerHTML = KIND_LABEL[cat] + ": <b>" + p.correct + "</b>/" + p.total;
+      els.badges.appendChild(b);
+      const countEl = document.getElementById("count-"+cat);
+      if(countEl) countEl.textContent = p.total>0 ? ("✅ " + p.correct + "/" + p.total) : "Әлі басталмады";
+    });
+  }
+
+  function newTask(){
+    state.checked = false;
+    els.feedback.className = "feedback";
+    els.feedback.textContent = "";
+    els.checkBtn.disabled = false;
+    els.checkBtn.textContent = "Тексеру";
+    els.taskBody.innerHTML = "";
+
+    const tier = tierOf(state.grade);
+    let task;
+    if(state.category==="logic") task = genLogicTask(tier);
+    else if(state.category==="attention") task = genAttentionTask(tier);
+    else task = genListeningTask(tier);
+
+    state.task = task;
+    els.taskKind.textContent = KIND_LABEL[state.category] + " · " + tier + "-деңгей";
+    els.prompt.textContent = task.prompt;
+    task.render(els.taskBody);
+  }
+
+  function checkAnswer(){
+    if(state.checked) return;
+    const task = state.task;
+    let ok = false;
+
+    if(task.customCheck){
+      ok = task.customCheck(els.taskBody);
+    } else {
+      const selected = els.taskBody.querySelector(".opt-btn.selected");
+      if(!selected){
+        els.feedback.className = "feedback show no";
+        els.feedback.textContent = "Алдымен жауапты таңда.";
+        return;
+      }
+      const val = task.byIndex ? Number(selected.dataset.value) : selected.dataset.value;
+      ok = task.byIndex ? (val === task.correctValue) : (String(val) === String(task.correctValue));
+      Array.from(els.taskBody.querySelectorAll(".opt-btn")).forEach(b=>{
+        const bv = task.byIndex ? Number(b.dataset.value) : b.dataset.value;
+        const isCorrect = task.byIndex ? (bv===task.correctValue) : (String(bv)===String(task.correctValue));
+        if(isCorrect) b.classList.add("correct");
+        else if(b.classList.contains("selected")) b.classList.add("wrong");
+        b.disabled = true;
+      });
+    }
+
+    state.checked = true;
+    els.checkBtn.disabled = true;
+
+    const cat = state.category;
+    progress[cat] = progress[cat] || {correct:0,total:0};
+    progress[cat].total += 1;
+    if(ok) progress[cat].correct += 1;
+    saveProgress(progress);
+    updateBadges();
+
+    els.feedback.className = "feedback show " + (ok?"ok":"no");
+    els.feedback.textContent = ok ? "Дұрыс! Жарайсың! 🌟" : "Дұрыс емес екен. Келесі тапсырмада жақсырақ шығады!";
+  }
+
+  els.checkBtn.addEventListener("click", checkAnswer);
+  els.nextBtn.addEventListener("click", newTask);
+  els.listenBtn.addEventListener("click", function(){
+    if(!state.task) return;
+    speak(state.task.speakText || state.task.prompt);
+  });
+
+  document.getElementById("resetBtn").addEventListener("click", function(){
+    progress = { logic:{correct:0,total:0}, attention:{correct:0,total:0}, listening:{correct:0,total:0} };
+    saveProgress(progress);
+    updateBadges();
+  });
+
+  /* ================= Accessibility controls ================= */
+  let fontScale = 1;
+  document.getElementById("fontUp").addEventListener("click", function(){
+    fontScale = Math.min(1.4, fontScale+0.1);
+    document.documentElement.style.setProperty("--scale", fontScale);
+  });
+  document.getElementById("fontDown").addEventListener("click", function(){
+    fontScale = Math.max(0.85, fontScale-0.1);
+    document.documentElement.style.setProperty("--scale", fontScale);
+  });
+  const contrastBtn = document.getElementById("contrastBtn");
+  contrastBtn.addEventListener("click", function(){
+    const on = document.documentElement.getAttribute("data-contrast")==="high";
+    if(on){ document.documentElement.removeAttribute("data-contrast"); contrastBtn.setAttribute("aria-pressed","false"); }
+    else{ document.documentElement.setAttribute("data-contrast","high"); contrastBtn.setAttribute("aria-pressed","true"); }
+  });
+  const soundBtn = document.getElementById("soundBtn");
+  soundBtn.addEventListener("click", function(){
+    state.soundOn = !state.soundOn;
+    soundBtn.setAttribute("aria-pressed", String(state.soundOn));
+    soundBtn.textContent = state.soundOn ? "🔊 Дыбыс" : "🔇 Дыбыс өшірулі";
+  });
+
+  const voiceSelectEl = document.getElementById("voiceSelect");
+  if(voiceSelectEl){
+    voiceSelectEl.addEventListener("change", function(){
+      chosenVoiceName = voiceSelectEl.value || null;
+      try{
+        if(chosenVoiceName) localStorage.setItem("zerde_voice_v1", chosenVoiceName);
+        else localStorage.removeItem("zerde_voice_v1");
+      }catch(e){}
+      speak("Дауыс таңдалды.");
+    });
+  }
+
+  /* ================= Init ================= */
+  buildGradeRow();
+  updateBadges();
+  selectTab("logic");
+})();
+</script>
+</body>
+</html>
